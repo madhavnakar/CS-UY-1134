@@ -52,6 +52,7 @@ SortedLinkedList:
     - delete is O(n)
 
 we will use unsortedarraymap
+ - the list will contain Item classes which contain the key/value as its fields
 '''
 
 class UnsortedArrayMap:
@@ -59,18 +60,35 @@ class UnsortedArrayMap:
         def __init__(self, key, value=None):
             self.key = key
             self.value = value
+
     def __init__(self):
         self.data = []
+
     def __setitem__(self, key, value):
-        pass
+        for item in self.data:     #checking if the key is already in the Map. In that case, update the value of the key
+            if (item.key == key):  #the reason we can do "for item ..." is because item is a reference to the object item. item.key accesses 
+                item.value = value #the key field of the actual class Item. if we however did item = None in the loop, then it wouldnt change self.data
+                return
+        new_item = UnsortedArrayMap.Item(key, value)
+        self.data.append(new_item)
+        
     def __getitem__(self, key):
         for item in self.data:
             if (item.key == key):
                 return item.value
         raise KeyError("Key Error: " + str(key))
+
     def __delitem__(self, key):
-        pass
+        for ind in range(len(self.data)):
+            if (self.data[ind].key == key):
+                val = self.data[ind].value
+                self.data.pop(ind)
+                return val
+        raise KeyError("Key Error: " + str(key))
+
     def __len__(self):
-        pass
+        return (len(self.data))
+
     def __iter__(self):
-        pass
+        for item in self.data:
+            yield item.key
