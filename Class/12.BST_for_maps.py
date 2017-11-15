@@ -118,13 +118,29 @@ class BinarySearchTree:
             self.size -= 1
 
         elif (number_children == 1):
-            pass
+            parent = node_to_delete.parent
+            if (node_to_delete.right is None):
+                child = node_to_delete.left
+            else:
+                child = node_to_delete.right
+            child.parent = parent
+            if (node_to_delete is parent.left):
+                parent.left = child
+            else:
+                parent.right = child
+            node_to_delete.disconnect()
+            self.size -= 1
+
         else:
-            pass
+            max_of_left = self.subtree_max(node_to_delete.max)
+            node_to_delete.item = max_of_left.item
+            self.subtree_delete(node_to_delete.left, max_of_left.item.key)
+            
 
         return value
 
-
+    def subtree_max(self, subtree_root):
+        pass
 
     def __iter__(self):
         pass
