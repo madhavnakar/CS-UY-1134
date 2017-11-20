@@ -8,146 +8,175 @@ A binary tree is a binary tree search if:
 **In the context of a map we are assuming that the keys are unique because there cannot be multiple keys in the same map**
 - In our implementation each node of the BST will contain the class Item
 '''
-
-class BinarySearchTree:
+class BinarySearchTreeMap:
     class Item:
         def __init__(self, key, value=None):
             self.key = key
             self.value = value
-
     class Node:
         def __init__(self, item):
             self.item = item
+            self.parent = None
             self.left = None
             self.right = None
-            self.parent = None
-
-        def number_of_children(self):
+        def num_children(self):
             count = 0
             if (self.left is not None):
                 count += 1
             if (self.right is not None):
                 count += 1
             return count
-
         def disconnect(self):
             self.item = None
+            self.parent = None
             self.left = None
             self.right = None
-            self.parent = None
-
     def __init__(self):
         self.root = None
         self.size = 0
-
     def __len__(self):
-        return (self.size)
-
+        return self.size
     def is_empty(self):
-        return (len(self) == 0)
+        return len(self) == 0
 
+    # raises exception if not found
     def __getitem__(self, key):
         node = self.subtree_find(self.root, key)
         if (node is None):
-            raise KeyError("Key Error " + str(key))
+            raise KeyError(str(key) + " not found")
         else:
             return node.item.value
 
-    def subtree_find(self, subtree_root, key): #can do recursive, but iterative is also easy because we are not visiting each node (b/c the tree is sorted)
-        curr = subtree_root         #returns the node where key is, or None if the key is not presentyd
+    # returns None if not found
+    def subtree_find(self, subtree_root, key): #can do recursive, but iterative is also easy because we are not visiting each node (b/c the tree is sorted) 
+        curr = subtree_root                    #returns the node where key is, or None if the key is not presentyd
         while (curr is not None):
             if (curr.item.key == key):
                 return curr
             elif (curr.item.key > key):
                 curr = curr.left
-            else:
-                curr = cur.right
+            else:  # (curr.item.key < key)
+                curr = curr.right
         return None
 
-    def __setitem__(self, key, value): #updates value if key is already in tree
+    # updates value if key already exists
+    def __setitem__(self, key, value):
         node = self.subtree_find(self.root, key)
-        if (node is not None):
-            node.item.value = value
-        else:
+        if (node is None):
             self.subtree_insert(key, value)
-            
-    def subtree_insert(self, key, value):#assumes key is not in tree
-        new_item = BinarySearchTreeMap.Item(key, value)
-        new_node = BinarySearchTreeMap.Node(new_item)
+        else:
+            node.item.value = value
+
+    # assumes key not in tree
+    def subtree_insert(self, key, value=None):
+        item = BinarySearchTreeMap.Item(key, value)
+        new_node = BinarySearchTreeMap.Node(item)
         if (self.is_empty()):
             self.root = new_node
             self.size = 1
         else:
             parent = self.root
-            if (self.root.item.key > key):
-                cursor = self.root.left
+            if(key < self.root.item.key):
+                curr = self.root.left
             else:
-                cursor = self.root.right
-            while (cursor is not None):
-                parent = cursor
-                if (curosr.item.key > key):
-                    cursor = cursor.left
+                curr = self.root.right
+            while (curr is not None):
+                parent = curr
+                if (key < curr.item.key):
+                    curr = curr.left
                 else:
-                    cursor = cursor.right
-            new_node.parent = parent
-            if (parent.item.key > key):
+                    curr = curr.right
+            if (key < parent.item.key):
                 parent.left = new_node
             else:
                 parent.right = new_node
-        self.sinze += 1
+            new_node.parent = parent
+            self.size += 1
 
-    def __delitem__(self, key): #raises an exception if key is not in tree
-        node = self.subtree_find(key)
-        if (node is None):
-            raise KeyError("Key Error: " + str(key))
+    #raises exception if key not in tree
+    def __delitem__(self, key):
+        if (self.subtree_find(self.root, key) is None):
+            raise KeyError(str(key) + " is not found")
         else:
             self.subtree_delete(self.root, key)
 
-    def subtree_delete(self, subtree_root, key): #assumes that the key is in the tree and returns the value
-        node_to_delete = self.subtree_find(subtree_root key)
+    #assumes key is in tree + returns value assosiated
+    def subtree_delete(self, node, key):
+        node_to_delete = self.subtree_find(node, key)
         value = node_to_delete.item.value
-        number_children = node_to_delete.number_of_children()
-
-        if (number_children == 0):
-            parent = node_to_delete.parent
-            if (node_to_delete is parent.left):
-                parent.left = None
-            else:
-                parent.right = None
-            node_to_delete.disconnect()
-            self.size -= 1
-
-        elif (number_children == 1):
-            parent = node_to_delete.parent
-            if (node_to_delete.right is None):
-                child = node_to_delete.left
-            else:
-                child = node_to_delete.right
-            child.parent = parent
-            if (node_to_delete is parent.left):
-                parent.left = child
-            else:
-                parent.right = child
-            node_to_delete.disconnect()
-            self.size -= 1
-
+        num_children = node_to_delete.num_children()
+        if (node_to_delete is self.root):
+            if (num_children == 0):
+                self.root = None
+                node_to_delete.disconnect()
+                self.size -= 1
+            elif (num_children == 1):
+                if (self.root.left is not None):
+                    self.root = self.root.left
+                else:
+                    self.root = self.root.right
+                self.root.parent = None
+                node_to_delete.disconnect()
+                self.size -= 1
+            else: #num_children == 2
+                max_of_left = self.subtree_max(node_to_delete.left)
+                node_to_delete.item = max_of_left.item
+                self.subtree_delete(node_to_delete.left, max_of_left.item.key)
         else:
-            max_of_left = self.subtree_max(node_to_delete.max)
-            node_to_delete.item = max_of_left.item
-            self.subtree_delete(node_to_delete.left, max_of_left.item.key)
-            
-
+            if (num_children == 0):
+                parent = node_to_delete.parent
+                if (node_to_delete is parent.left):
+                    parent.left = None
+                else:
+                    parent.right = None
+                node_to_delete.disconnect()
+                self.size -= 1
+            elif (num_children == 1):
+                parent = node_to_delete.parent
+                if(node_to_delete.left is not None):
+                    child = node_to_delete.left
+                else:
+                    child = node_to_delete.right
+                child.parent = parent
+                if (node_to_delete is parent.left):
+                    parent.left = child
+                else:
+                    parent.right = child
+                node_to_delete.disconnect()
+                self.size -= 1
+            else: #num_children == 2
+                max_of_left = self.subtree_max(node_to_delete.left)
+                node_to_delete.item = max_of_left.item
+                self.subtree_delete(node_to_delete.left, max_of_left.item.key)
         return value
 
-    def subtree_max(self, subtree_root):
-        pass
-
+    # assumes non empty subtree
+    def subtree_max(self, curr_root):
+        node = curr_root
+        while (node.right is not None):
+            node = node.right
+        return node
+    def inorder(self):
+        for node in self.subtree_inorder(self.root):
+            yield node
+    def subtree_inorder(self, curr_root):
+        if(curr_root is None):
+            pass
+        else:
+            yield from self.subtree_inorder(curr_root.left)
+            yield curr_root
+            yield from self.subtree_inorder(curr_root.right)
     def __iter__(self):
-        pass
+        for node in self.inorder():
+            yield (node.item.key, node.item.value)
+
+ 
 '''
 def __getitem__(...) has O(n) because in worst case a tree can be flat and so you have to iterate over all the nodes
 
 Runtimes for BinarySearchTreeMap:
-    - find: O(n)
-    - 
+    - find: O(n) also O(h)
+    - Insert: O(n) also O(h)
+    - Delete: O(n) - There will be a maximum of two recursive calls (each calls find) so runtime is 2n which is O(n)
+We are really disappointed that we couldn't improve the run times.
 '''
