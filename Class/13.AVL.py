@@ -9,3 +9,14 @@ Runtimes:
     - insert: O(log(n))
     - delete: O(log(n))
 
+we will use "rotations" to balance the tree after we insert or delete
+
+AVL Insert:
+    - apply the isnert algorithm of k as if the tree is a regular Binary Search Tree. This could violate the balancing property
+    - walk from the new node(with k) upwards on the insertion path.
+
+(rest of the notes in the pdf)
+
+Unfortunatly we will not implement AVL trees
+'''
+
