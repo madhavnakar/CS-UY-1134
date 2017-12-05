@@ -98,6 +98,14 @@ class BinarySearchTreeMap:
         if (self.subtree_find(self.root, key) is None):
             raise KeyError(str(key) + " is not found")
         else:
+            node_to_change = self.subtree_find(self.root, key)
+            while(node_to_change.parent is not None):
+                parent = node_to_change.parent
+                if (parent.left is node_to_change):
+                    parent.left_count -= 1
+                else:
+                    parent.right_count -= 1
+                node_to_change = node_to_change.parent
             self.subtree_delete(self.root, key)
 
     #assumes key is in tree + returns value assosiated

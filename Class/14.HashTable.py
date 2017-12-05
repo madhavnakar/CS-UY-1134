@@ -57,5 +57,83 @@ Compression function approaches:
       there will be some pattern with the remaineders. Usually we will choose prime as n to eliminate some patterns.
     - MAD (multiply, add, divide) Method: let p be a prime number p > size of possible inputs (V). Let a be a random number: 
       {1, 2,...,p-1}. Let b be a random number: {0, 1,..., p-1}. Then h(x) = [(a*x + b)mod(p)]mod(n)
+
+Runtime for chaining:
+    - Worst case: 0(n) b/c if all keys are mapped to the same slot.
+    - Best case: 0(1) b/c there are no collisions
+    - Expected (average case): Assuming keys are chosen randomly and the hash function satisfies the uniform distribution property,
+      then 0(alpha + 1). Where alpha (load factor) is the size of the table over the number of inputs (n/N). The plus 1 is for 
+      applying the hash function and accessing the right slot and the alpha is the average cost of scanning the secondary storage.
+      If at all times we make sure that n <= c * N, where c is a constant, then alpha <= 1, then the average case is 0(1).
 '''
-      
+
+# We will take the built in hash function as the coding function and MAD as the compression function
+
+# We will use the unsortedarraymap as the secondary storage (assume that I imported it correctly). In the secondary storage the key/value
+# are stored in a class called item. The seconday storage takes care of storing key/val in item, so we do not have to do that
+
+import UnsortedArrayMap 
+import random
+
+class ChainingHashTableMap:
+    def __init__(self, N=64, p=6460101079):
+        self.N = N
+        self.table = [None]*self.N
+        self.n = 0
+        self.p = p
+        self.a = random.randint(1, self.p - 1)
+        self.b = random.randint(0, self.p - 1)
+
+    def hash_func(self, key): #does coding and compression in one line
+        return ((self.a * hash(key) + self.b) % self.p) % self.N
+
+    def __getitem__(self, key):
+        j = self.hash_func(key)
+        curr_bucket = self.table[j]
+        if (curr_bucket is None):
+            raise KeyError("Key Error: " + str(key))
+        return curr_bucket[key]
+
+    def __setitem__(self, key, value): #unsortedarraymap takes care of search for the key and updating or adding the new key
+        j = self.hash_func(key)
+        if (self.table[j] is None):
+            self.table[j] = UnsortedArrayMap.UnsortedArrayMap()
+        old_size = len(self.table[j])
+        self.table[j][key] = value
+        new_size = len(self.table[j])
+        if (new_size > old_size): #Checking if it was a replacement or a new addition
+            self.n += 1
+        if (self.n > self.N):
+            self.rehash(self.N * 2)
+
+    def __delitem__(self, key):
+        j = self.hash_func(key)
+        curr_bucket = self.table[j]
+        if (curr_bucket is None):
+            raise KeyError("Key Error: " + str(key))
+        del curr_bucket[key] #this will raise an exception if key is not in curr_bucket
+        self.n -= 1
+        if (self.n < self.N // 4):
+            self.rehash(self.N // 4)
+        if (len(curr_bucket) == 0):
+            self.table[j] = None
+
+    def __len__(self):
+        return self.n
+
+    def __iter__(self):
+        for curr_bucket in self.table:
+            if (curr_bucket is not None):
+                for key in curr_bucket:
+                    yield key
+
+    def rehash(self, new_size):
+
+        
+
+
+
+        
+
+    
+
