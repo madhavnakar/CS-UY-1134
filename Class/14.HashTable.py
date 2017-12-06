@@ -113,10 +113,11 @@ class ChainingHashTableMap:
             raise KeyError("Key Error: " + str(key))
         del curr_bucket[key] #this will raise an exception if key is not in curr_bucket
         self.n -= 1
-        if (self.n < self.N // 4):
-            self.rehash(self.N // 4)
         if (len(curr_bucket) == 0):
             self.table[j] = None
+        if (self.n < self.N // 4):
+            self.rehash(self.N // 2)
+
 
     def __len__(self):
         return self.n
@@ -128,12 +129,24 @@ class ChainingHashTableMap:
                     yield key
 
     def rehash(self, new_size):
+        old = []
+        for key in self:
+            value = self[key]
+            old.append((key, value))
+        self.table = [None] * new_size
+        self.n = 0
+        self.N = new_size
+        for (key, value) in old:
+            self[key] = value
 
-        
+'''
+Open Addressing:
 
 
-
-        
-
-    
-
+Collision Resolutions:
+    - Linear Probing: h(x, i) = (h'(x) + i) % N   i = 0, 1, 2, 3, 4, ...
+      We basically try next slot if there already is an element in the slot we were assigned to. However linear probing
+      encourages clustering.
+    - Quadratic probing: h(x, i) = (h'(x) + i^2) % N   i = 0, 1, 2, 3, ...
+    - Double hashing: h(x, i) = (h'(x) + i*h''(x)) % N 
+'''
